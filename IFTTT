@@ -1,0 +1,55 @@
+// define Light Sensitivity Sensor as LSS
+int LSS = A5;
+
+// set the amount of time spent in the sun in a given period to 0
+int TimeSpent = 0;
+// sets the amount of roughly how long the timer is being set
+int AmountToSpend = 20;
+// soley for the end state
+bool Complete = false;
+
+void setup()
+{
+    pinMode(LSS, INPUT);
+}
+
+void loop()
+{
+    // sets the light level for testing purposes, but overall you would have sensory data enter here into light level which returns a value
+    // the light level is set to a random number that is between 0 and 2
+    int LightLevel = random(3);
+    
+    // i is a number that the light level can compare to. If we assume 1 is neither sunrise or sunset and anything above or below defines 
+    // sunrise or sunset we can write the code
+    int i = 1;
+    
+    // even though we assume 1 is not sunrise, if the sensor indicates a value equal to the comparative value, than it is likely it is still sunny as it is 
+    // finding a value rather than finding no value. Taking an example of fuzzy logic, if we were to blur the data into either true or false than
+    // as long as the input is true it should mean that the sensor is detecting something.
+    
+    // for testing purposes assume timespent has to be below 20 just to speed up testing. This number should be equal to 86400 seconds, or 1440 minutes, or 24 hours
+    // all of which is divided by 2 to assume that you want to run the program for half the time rather than throughout the night
+    if (TimeSpent < AmountToSpend && Complete == false)
+    {
+        if (LightLevel  >= i) 
+        {
+            Particle.publish("TimeSpent", String(TimeSpent), PRIVATE);
+            TimeSpent += 2;
+        }
+        if (LightLevel < i)
+        {
+            Particle.publish("TimeSpent", String(TimeSpent), PRIVATE);
+            TimeSpent += 1;
+        } 
+    }
+    
+    // created as a final state for the IFTTT to register and send a notification. For the purposes of this test, a email.
+    if (TimeSpent >= AmountToSpend && Complete == false)
+    {
+        // setting the output to 20 since its confusing if it isn't and it helps wit output in IFTTT
+        Particle.publish("TimeSpent", String(20), PRIVATE);
+        Complete = true;
+    }
+    
+    delay(10000);
+}
